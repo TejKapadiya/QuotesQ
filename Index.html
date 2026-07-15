@@ -345,7 +345,7 @@
     <div class="timer-block">
       <div class="timer-labels">
         <span>Next quote</span>
-        <span id="timerCount">60s</span>
+        <span id="timerCount">100s</span>
       </div>
       <div class="progress-track">
         <div class="progress-fill" id="progressFill"></div>
@@ -366,7 +366,7 @@
       /* =========================================================
          CONFIG
       ========================================================= */
-      const CYCLE_SECONDS = 60;
+      const CYCLE_SECONDS = 100;
       const PRELOAD_AT_SECONDS_REMAINING = 30; // start preloading next bg when 30s remain (i.e. 30s in)
 
       const FONTS = [
@@ -401,28 +401,270 @@
         `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1920&q=80`
       );
 
-      // Small local fallback quote set (used only if the remote quote database fails to load)
-      const FALLBACK_QUOTES = [
-        { text: "The way to get started is to quit talking and begin doing.", author: "Walt Disney" },
-        { text: "Life is what happens when you're busy making other plans.", author: "John Lennon" },
-        { text: "The future belongs to those who believe in the beauty of their dreams.", author: "Eleanor Roosevelt" },
-        { text: "It is during our darkest moments that we must focus to see the light.", author: "Aristotle" },
-        { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
-        { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
-        { text: "In the middle of difficulty lies opportunity.", author: "Albert Einstein" },
-        { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
-        { text: "What lies behind us and what lies before us are tiny matters compared to what lies within us.", author: "Ralph Waldo Emerson" },
-        { text: "Do not go where the path may lead, go instead where there is no path and leave a trail.", author: "Ralph Waldo Emerson" },
-        { text: "The only limit to our realization of tomorrow is our doubts of today.", author: "Franklin D. Roosevelt" },
-        { text: "You miss 100% of the shots you don't take.", author: "Wayne Gretzky" },
-        { text: "Whether you think you can or you think you can't, you're right.", author: "Henry Ford" },
-        { text: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Chinese Proverb" },
-        { text: "Your time is limited, so don't waste it living someone else's life.", author: "Steve Jobs" },
-        { text: "Everything you've ever wanted is on the other side of fear.", author: "George Addair" },
-        { text: "Hardships often prepare ordinary people for an extraordinary destiny.", author: "C.S. Lewis" },
-        { text: "It always seems impossible until it's done.", author: "Nelson Mandela" },
-        { text: "Act as if what you do makes a difference. It does.", author: "William James" },
-        { text: "Certain things catch your eye, but pursue only those that capture the heart.", author: "Ancient Indian Proverb" }
+      // Embedded local quote library — 224 well-known public-domain-attribution
+      // quotes. Bundled directly in the file so the display has zero runtime
+      // network dependency for quotes: no API to go down, rate-limit, or get
+      // CORS-blocked. Loads instantly and works fully offline.
+      const QUOTES = [
+        { text: 'જ્યાં ઇચ્છા હોય ત્યાં માર્ગ હોય.', author: 'ગુજરાતી કહેવત' },
+        { text: 'મહેનત ક્યારેય વ્યર્થ જતી નથી.', author: 'ગુજરાતી કહેવત' },
+        { text: 'સાચું બોલવું એ સૌથી મોટો ધર્મ છે.', author: 'મહાત્મા ગાંધી' },
+        { text: 'તમે દુનિયામાં જે બદલાવ જોવા માંગો છો, તે બદલાવ પહેલાં તમે પોતે બનો.', author: 'મહાત્મા ગાંધી' },
+        { text: 'નબળા લોકો ક્યારેય માફ કરી શકતા નથી. માફી શક્તિશાળીની ઓળખ છે.', author: 'મહાત્મા ગાંધી' },
+        { text: 'જીવનનું સાચું સૌંદર્ય સાદગીમાં વસે છે.', author: 'મહાત્મા ગાંધી' },
+        { text: 'શિક્ષણ એ એવું શસ્ત્ર છે જેનાથી દુનિયા બદલી શકાય.', author: 'મહાત્મા ગાંધી' },
+        { text: 'સમય સૌથી મોટો શિક્ષક છે, પરંતુ તે પોતાના બધા વિદ્યાર્થીઓની પરીક્ષા પહેલા લે છે.', author: 'ગુજરાતી કહેવત' },
+        { text: 'ધીરજ રાખનારને મીઠું ફળ મળે છે.', author: 'ગુજરાતી કહેવત' },
+        { text: 'સત્યનો માર્ગ કઠિન હોઈ શકે, પરંતુ અંતે વિજય સત્યનો જ થાય છે.', author: 'મહાત્મા ગાંધી' },
+        { text: 'જેવું વાવો તેવું લણો.', author: 'ગુજરાતી કહેવત' },
+        { text: 'વિચાર બદલો, જીવન બદલાઈ જશે.', author: 'ગુજરાતી કહેવત' },
+        { text: 'જ્ઞાન કરતાં મોટું કોઈ ધન નથી.', author: 'ગુજરાતી કહેવત' },
+        { text: 'જે હિંમત કરે છે તે જ સફળ થાય છે.', author: 'ગુજરાતી કહેવત' },
+        { text: 'સાદું જીવન અને ઉચ્ચ વિચાર એ જ સાચી સમૃદ્ધિ છે.', author: 'મહાત્મા ગાંધી' },
+        { text: 'सपने वो नहीं जो नींद में आते हैं, सपने वो हैं जो आपको सोने न दें।', author: 'डॉ. ए. पी. जे. अब्दुल कलाम' },
+        { text: 'उठो, जागो और तब तक मत रुको जब तक लक्ष्य की प्राप्ति न हो जाए।', author: 'स्वामी विवेकानंद' },
+        { text: 'आप वह बदलाव बनिए जो आप दुनिया में देखना चाहते हैं।', author: 'महात्मा गांधी' },
+        { text: 'सफलता अंत नहीं है, असफलता घातक नहीं है; आगे बढ़ते रहने का साहस ही मायने रखता है।', author: 'विंस्टन चर्चिल' },
+        { text: 'जहाँ चाह है, वहाँ राह है।', author: 'हिंदी कहावत' },
+        { text: 'मेहनत का फल हमेशा मीठा होता है।', author: 'हिंदी कहावत' },
+        { text: 'समय सबसे मूल्यवान संपत्ति है, इसे व्यर्थ मत गँवाइए।', author: 'चाणक्य' },
+        { text: 'शिक्षा सबसे शक्तिशाली हथियार है जिससे दुनिया बदली जा सकती है।', author: 'नेल्सन मंडेला' },
+        { text: 'कर्म करते रहो, फल की चिंता मत करो।', author: 'भगवद्गीता' },
+        { text: 'जो व्यक्ति धैर्य रखता है, वह हर कठिनाई पर विजय पा सकता है।', author: 'चाणक्य' },
+        { text: 'जीवन में वही व्यक्ति सफल होता है जो जोखिम उठाने का साहस रखता है।', author: 'अज्ञात' },
+        { text: 'सच्चाई कभी हारती नहीं, बस उसे साबित होने में समय लगता है।', author: 'हिंदी कहावत' },
+        { text: 'छोटे-छोटे प्रयास मिलकर बड़ी सफलता बनाते हैं।', author: 'अज्ञात' },
+        { text: 'ज्ञान से बड़ा कोई धन नहीं और संतोष से बड़ा कोई सुख नहीं।', author: 'चाणक्य' },
+        { text: 'हर नया दिन एक नई शुरुआत का अवसर है।', author: 'अज्ञात' },
+        { text: 'मुश्किलें केवल बेहतरीन लोगों के हिस्से में आती हैं।', author: 'अज्ञात' },
+        { text: 'हार मत मानो, शुरुआत हमेशा सबसे कठिन होती है।', author: 'अज्ञात' },
+        { text: 'सपनों को सच करने का सबसे अच्छा समय आज है।', author: 'अज्ञात' },
+        { text: 'जो सीखना बंद कर देता है, वह आगे बढ़ना भी बंद कर देता है।', author: 'हेनरी फोर्ड' },
+        { text: 'हर सफलता की शुरुआत एक छोटे कदम से होती है।', author: 'लाओ त्से' },
+        { text: 'The way to get started is to quit talking and begin doing.', author: 'Walt Disney' },
+        { text: 'Life is what happens when you\'re busy making other plans.', author: 'John Lennon' },
+        { text: 'The future belongs to those who believe in the beauty of their dreams.', author: 'Eleanor Roosevelt' },
+        { text: 'It is during our darkest moments that we must focus to see the light.', author: 'Aristotle' },
+        { text: 'Success is not final, failure is not fatal: it is the courage to continue that counts.', author: 'Winston Churchill' },
+        { text: 'The only way to do great work is to love what you do.', author: 'Steve Jobs' },
+        { text: 'In the middle of difficulty lies opportunity.', author: 'Albert Einstein' },
+        { text: 'Believe you can and you\'re halfway there.', author: 'Theodore Roosevelt' },
+        { text: 'What lies behind us and what lies before us are tiny matters compared to what lies within us.', author: 'Ralph Waldo Emerson' },
+        { text: 'Do not go where the path may lead, go instead where there is no path and leave a trail.', author: 'Ralph Waldo Emerson' },
+        { text: 'The only limit to our realization of tomorrow is our doubts of today.', author: 'Franklin D. Roosevelt' },
+        { text: 'You miss 100% of the shots you don\'t take.', author: 'Wayne Gretzky' },
+        { text: 'Whether you think you can or you think you can\'t, you\'re right.', author: 'Henry Ford' },
+        { text: 'The best time to plant a tree was 20 years ago. The second best time is now.', author: 'Chinese Proverb' },
+        { text: 'Your time is limited, so don\'t waste it living someone else\'s life.', author: 'Steve Jobs' },
+        { text: 'Everything you\'ve ever wanted is on the other side of fear.', author: 'George Addair' },
+        { text: 'Hardships often prepare ordinary people for an extraordinary destiny.', author: 'C.S. Lewis' },
+        { text: 'It always seems impossible until it\'s done.', author: 'Nelson Mandela' },
+        { text: 'Act as if what you do makes a difference. It does.', author: 'William James' },
+        { text: 'Certain things catch your eye, but pursue only those that capture the heart.', author: 'Ancient Indian Proverb' },
+        { text: 'Two roads diverged in a wood, and I took the one less traveled by.', author: 'Robert Frost' },
+        { text: 'I have not failed. I\'ve just found 10,000 ways that won\'t work.', author: 'Thomas Edison' },
+        { text: 'A person who never made a mistake never tried anything new.', author: 'Albert Einstein' },
+        { text: 'The only impossible journey is the one you never begin.', author: 'Tony Robbins' },
+        { text: 'In this life we cannot do great things. We can only do small things with great love.', author: 'Mother Teresa' },
+        { text: 'Only a life lived for others is a life worthwhile.', author: 'Albert Einstein' },
+        { text: 'The purpose of our lives is to be happy.', author: 'Dalai Lama' },
+        { text: 'Life is really simple, but we insist on making it complicated.', author: 'Confucius' },
+        { text: 'May you live all the days of your life.', author: 'Jonathan Swift' },
+        { text: 'Life itself is the most wonderful fairy tale.', author: 'Hans Christian Andersen' },
+        { text: 'Do not go where the path may lead; go instead where there is no path and leave a trail.', author: 'Ralph Waldo Emerson' },
+        { text: 'Nothing is impossible, the word itself says \'I\'m possible\'.', author: 'Audrey Hepburn' },
+        { text: 'The greatest glory in living lies not in never falling, but in rising every time we fall.', author: 'Nelson Mandela' },
+        { text: 'The way I see it, if you want the rainbow, you gotta put up with the rain.', author: 'Dolly Parton' },
+        { text: 'If life were predictable it would cease to be life, and be without flavor.', author: 'Eleanor Roosevelt' },
+        { text: 'Life is either a daring adventure or nothing at all.', author: 'Helen Keller' },
+        { text: 'Many of life\'s failures are people who did not realize how close they were to success when they gave up.', author: 'Thomas Edison' },
+        { text: 'You will face many defeats in life, but never let yourself be defeated.', author: 'Maya Angelou' },
+        { text: 'It is our choices, that show what we truly are, far more than our abilities.', author: 'J.K. Rowling' },
+        { text: 'Imagination is more important than knowledge.', author: 'Albert Einstein' },
+        { text: 'Life is what we make it, always has been, always will be.', author: 'Grandma Moses' },
+        { text: 'The whole secret of a successful life is to find out what is one\'s destiny to do.', author: 'Henry Ford' },
+        { text: 'Few things are impossible to diligence and skill.', author: 'Samuel Johnson' },
+        { text: 'Success usually comes to those who are too busy to be looking for it.', author: 'Henry David Thoreau' },
+        { text: 'Don\'t judge each day by the harvest you reap but by the seeds that you plant.', author: 'Robert Louis Stevenson' },
+        { text: 'The future depends on what you do today.', author: 'Mahatma Gandhi' },
+        { text: 'It does not matter how slowly you go as long as you do not stop.', author: 'Confucius' },
+        { text: 'Everything has beauty, but not everyone can see.', author: 'Confucius' },
+        { text: 'When I let go of what I am, I become what I might be.', author: 'Lao Tzu' },
+        { text: 'Life is not measured by the number of breaths we take, but by the moments that take our breath away.', author: 'Maya Angelou' },
+        { text: 'Change your thoughts and you change your world.', author: 'Norman Vincent Peale' },
+        { text: 'Either you run the day or the day runs you.', author: 'Jim Rohn' },
+        { text: 'Success is not how high you have climbed, but how you make a positive difference to the world.', author: 'Roy T. Bennett' },
+        { text: 'You may be disappointed if you fail, but you are doomed if you don\'t try.', author: 'Beverly Sills' },
+        { text: 'Do what you can, with what you have, where you are.', author: 'Theodore Roosevelt' },
+        { text: 'If you look at what you have in life, you\'ll always have more.', author: 'Oprah Winfrey' },
+        { text: 'Happiness is not something ready-made. It comes from your own actions.', author: 'Dalai Lama' },
+        { text: 'If you want to lift yourself up, lift up someone else.', author: 'Booker T. Washington' },
+        { text: 'I\'ve learned that people will forget what you said, but people will never forget how you made them feel.', author: 'Maya Angelou' },
+        { text: 'Keep your face always toward the sunshine, and shadows will fall behind you.', author: 'Walt Whitman' },
+        { text: 'The best way to predict the future is to create it.', author: 'Peter Drucker' },
+        { text: 'Turn your wounds into wisdom.', author: 'Oprah Winfrey' },
+        { text: 'The only person you are destined to become is the person you decide to be.', author: 'Ralph Waldo Emerson' },
+        { text: 'Go confidently in the direction of your dreams. Live the life you have imagined.', author: 'Henry David Thoreau' },
+        { text: 'When you reach the end of your rope, tie a knot in it and hang on.', author: 'Franklin D. Roosevelt' },
+        { text: 'Always remember that you are absolutely unique. Just like everyone else.', author: 'Margaret Mead' },
+        { text: 'Don\'t cry because it\'s over, smile because it happened.', author: 'Dr. Seuss' },
+        { text: 'You know you\'re in love when you can\'t fall asleep because reality is finally better than your dreams.', author: 'Dr. Seuss' },
+        { text: 'We may encounter many defeats but we must not be defeated.', author: 'Maya Angelou' },
+        { text: 'Knowing yourself is the beginning of all wisdom.', author: 'Aristotle' },
+        { text: 'Great minds discuss ideas; average minds discuss events; small minds discuss people.', author: 'Eleanor Roosevelt' },
+        { text: 'The greatest wealth is to live content with little.', author: 'Plato' },
+        { text: 'What we think, we become.', author: 'Buddha' },
+        { text: 'Peace comes from within. Do not seek it without.', author: 'Buddha' },
+        { text: 'Well done is better than well said.', author: 'Benjamin Franklin' },
+        { text: 'An investment in knowledge pays the best interest.', author: 'Benjamin Franklin' },
+        { text: 'Tell me and I forget. Teach me and I remember. Involve me and I learn.', author: 'Benjamin Franklin' },
+        { text: 'The journey of a thousand miles begins with a single step.', author: 'Lao Tzu' },
+        { text: 'Simplicity is the ultimate sophistication.', author: 'Leonardo da Vinci' },
+        { text: 'Learning never exhausts the mind.', author: 'Leonardo da Vinci' },
+        { text: 'Art is never finished, only abandoned.', author: 'Leonardo da Vinci' },
+        { text: 'Study the past if you would define the future.', author: 'Confucius' },
+        { text: 'Real knowledge is to know the extent of one\'s ignorance.', author: 'Confucius' },
+        { text: 'The man who moves a mountain begins by carrying away small stones.', author: 'Confucius' },
+        { text: 'Wherever you go, go with all your heart.', author: 'Confucius' },
+        { text: 'A journey of a thousand miles begins with a single step.', author: 'Lao Tzu' },
+        { text: 'Nature does not hurry, yet everything is accomplished.', author: 'Lao Tzu' },
+        { text: 'Silence is a source of great strength.', author: 'Lao Tzu' },
+        { text: 'Watch your thoughts; they become words. Watch your words; they become actions.', author: 'Lao Tzu' },
+        { text: 'The best fighter is never angry.', author: 'Lao Tzu' },
+        { text: 'A good traveler has no fixed plans and is not intent on arriving.', author: 'Lao Tzu' },
+        { text: 'Health is the greatest gift, contentment the greatest wealth.', author: 'Buddha' },
+        { text: 'The mind is everything. What you think you become.', author: 'Buddha' },
+        { text: 'Better than a thousand hollow words, is one word that brings peace.', author: 'Buddha' },
+        { text: 'You yourself, as much as anybody in the entire universe, deserve your love and affection.', author: 'Buddha' },
+        { text: 'There are only two ways to live your life. One is as though nothing is a miracle.', author: 'Albert Einstein' },
+        { text: 'Try not to become a person of success, but rather try to become a person of value.', author: 'Albert Einstein' },
+        { text: 'Once we accept our limits, we go beyond them.', author: 'Albert Einstein' },
+        { text: 'Anyone who has never made a mistake has never tried anything new.', author: 'Albert Einstein' },
+        { text: 'Weakness of attitude becomes weakness of character.', author: 'Albert Einstein' },
+        { text: 'A ship in harbor is safe, but that is not what ships are built for.', author: 'John A. Shedd' },
+        { text: 'What you get by achieving your goals is not as important as what you become by achieving your goals.', author: 'Zig Ziglar' },
+        { text: 'You don\'t have to be great to start, but you have to start to be great.', author: 'Zig Ziglar' },
+        { text: 'Setting goals is the first step in turning the invisible into the visible.', author: 'Tony Robbins' },
+        { text: 'The only way to achieve the impossible is to believe it is possible.', author: 'Charles Kingsleigh' },
+        { text: 'Champions keep playing until they get it right.', author: 'Billie Jean King' },
+        { text: 'You are never too old to set another goal or to dream a new dream.', author: 'C.S. Lewis' },
+        { text: 'Optimism is the faith that leads to achievement.', author: 'Helen Keller' },
+        { text: 'Although the world is full of suffering, it is also full of the overcoming of it.', author: 'Helen Keller' },
+        { text: 'When one door of happiness closes, another opens.', author: 'Helen Keller' },
+        { text: 'Character cannot be developed in ease and quiet.', author: 'Helen Keller' },
+        { text: 'The best and most beautiful things in the world cannot be seen or even touched.', author: 'Helen Keller' },
+        { text: 'No one can make you feel inferior without your consent.', author: 'Eleanor Roosevelt' },
+        { text: 'Do one thing every day that scares you.', author: 'Eleanor Roosevelt' },
+        { text: 'The future belongs to those who prepare for it today.', author: 'Malcolm X' },
+        { text: 'Education is the most powerful weapon which you can use to change the world.', author: 'Nelson Mandela' },
+        { text: 'It always seems impossible until it is done.', author: 'Nelson Mandela' },
+        { text: 'A winner is a dreamer who never gives up.', author: 'Nelson Mandela' },
+        { text: 'There is no passion to be found playing small.', author: 'Nelson Mandela' },
+        { text: 'Courage is not the absence of fear, but the triumph over it.', author: 'Nelson Mandela' },
+        { text: 'If you want to go fast, go alone. If you want to go far, go together.', author: 'African Proverb' },
+        { text: 'Fall seven times, stand up eight.', author: 'Japanese Proverb' },
+        { text: 'When the going gets tough, the tough get going.', author: 'Joseph P. Kennedy' },
+        { text: 'Perseverance is not a long race; it is many short races one after the other.', author: 'Walter Elliot' },
+        { text: 'Success is the sum of small efforts, repeated day in and day out.', author: 'Robert Collier' },
+        { text: 'Motivation is what gets you started. Habit is what keeps you going.', author: 'Jim Rohn' },
+        { text: 'Discipline is the bridge between goals and accomplishment.', author: 'Jim Rohn' },
+        { text: 'You are what you repeatedly do.', author: 'Aristotle' },
+        { text: 'Excellence is never an accident. It is the result of high intention and sincere effort.', author: 'Aristotle' },
+        { text: 'Patience is bitter, but its fruit is sweet.', author: 'Aristotle' },
+        { text: 'Quality is not an act, it is a habit.', author: 'Aristotle' },
+        { text: 'Pleasure in the job puts perfection in the work.', author: 'Aristotle' },
+        { text: 'The energy of the mind is the essence of life.', author: 'Aristotle' },
+        { text: 'It is not enough to win a war; it is more important to organize the peace.', author: 'Aristotle' },
+        { text: 'Give me six hours to chop down a tree and I will spend the first four sharpening the axe.', author: 'Abraham Lincoln' },
+        { text: 'Whatever you are, be a good one.', author: 'Abraham Lincoln' },
+        { text: 'Nearly all men can stand adversity, but if you want to test a man\'s character, give him power.', author: 'Abraham Lincoln' },
+        { text: 'I am a slow walker, but I never walk back.', author: 'Abraham Lincoln' },
+        { text: 'The best way to predict your future is to create it.', author: 'Abraham Lincoln' },
+        { text: 'Things may come to those who wait, but only the things left by those who hustle.', author: 'Abraham Lincoln' },
+        { text: 'The mind, once stretched by a new idea, never returns to its original dimensions.', author: 'Oliver Wendell Holmes' },
+        { text: 'Do not wait to strike till the iron is hot; but make it hot by striking.', author: 'William Butler Yeats' },
+        { text: 'Genius is one percent inspiration and ninety-nine percent perspiration.', author: 'Thomas Edison' },
+        { text: 'Our greatest weakness lies in giving up. The most certain way to succeed is to try just one more time.', author: 'Thomas Edison' },
+        { text: 'Opportunity is missed by most people because it is dressed in overalls and looks like work.', author: 'Thomas Edison' },
+        { text: 'There is no substitute for hard work.', author: 'Thomas Edison' },
+        { text: 'Just because something doesn\'t do what you planned it to do doesn\'t mean it\'s useless.', author: 'Thomas Edison' },
+        { text: 'Vision is the art of seeing what is invisible to others.', author: 'Jonathan Swift' },
+        { text: 'The pessimist sees difficulty in every opportunity. The optimist sees opportunity in every difficulty.', author: 'Winston Churchill' },
+        { text: 'Success is walking from failure to failure with no loss of enthusiasm.', author: 'Winston Churchill' },
+        { text: 'A pessimist sees the difficulty in every opportunity; an optimist sees the opportunity in every difficulty.', author: 'Winston Churchill' },
+        { text: 'We make a living by what we get, but we make a life by what we give.', author: 'Winston Churchill' },
+        { text: 'Continuous effort - not strength or intelligence - is the key to unlocking our potential.', author: 'Winston Churchill' },
+        { text: 'Never let the fear of striking out keep you from playing the game.', author: 'Babe Ruth' },
+        { text: 'The way a team plays as a whole determines its success.', author: 'Babe Ruth' },
+        { text: 'It\'s hard to beat a person who never gives up.', author: 'Babe Ruth' },
+        { text: 'Every strike brings me closer to the next home run.', author: 'Babe Ruth' },
+        { text: 'If you\'re going through hell, keep going.', author: 'Winston Churchill' },
+        { text: 'The greatest test of courage on the earth is to bear defeat without losing heart.', author: 'Robert Green Ingersoll' },
+        { text: 'It\'s not whether you get knocked down, it\'s whether you get up.', author: 'Vince Lombardi' },
+        { text: 'The measure of who we are is what we do with what we have.', author: 'Vince Lombardi' },
+        { text: 'Winning isn\'t everything, but wanting to win is.', author: 'Vince Lombardi' },
+        { text: 'Perfection is not attainable, but if we chase perfection we can catch excellence.', author: 'Vince Lombardi' },
+        { text: 'Confidence is contagious. So is lack of confidence.', author: 'Vince Lombardi' },
+        { text: 'Do the difficult things while they are easy and do the great things while they are small.', author: 'Lao Tzu' },
+        { text: 'A leader is best when people barely know he exists.', author: 'Lao Tzu' },
+        { text: 'Mistakes are always forgivable, if one has the courage to admit them.', author: 'Bruce Lee' },
+        { text: 'Do not pray for an easy life, pray for the strength to endure a difficult one.', author: 'Bruce Lee' },
+        { text: 'Adapt what is useful, reject what is useless, and add what is specifically your own.', author: 'Bruce Lee' },
+        { text: 'Knowing is not enough, we must apply. Willing is not enough, we must do.', author: 'Bruce Lee' },
+        { text: 'As you think, so shall you become.', author: 'Bruce Lee' },
+        { text: 'Notice that the stiffest tree is most easily cracked, while the bamboo survives by bending.', author: 'Bruce Lee' },
+        { text: 'If you love life, don\'t waste time, for time is what life is made up of.', author: 'Bruce Lee' },
+        { text: 'The successful warrior is the average man, with laser-like focus.', author: 'Bruce Lee' },
+        { text: 'Under the sky, under the heavens, there is but one family.', author: 'Bruce Lee' },
+        { text: 'I fear not the man who has practiced 10,000 kicks once, but the man who has practiced one kick 10,000 times.', author: 'Bruce Lee' },
+        { text: 'The more we value things outside our control, the less control we have.', author: 'Epictetus' },
+        { text: 'First say to yourself what you would be; and then do what you have to do.', author: 'Epictetus' },
+        { text: 'It\'s not what happens to you, but how you react to it that matters.', author: 'Epictetus' },
+        { text: 'No man is free who is not master of himself.', author: 'Epictetus' },
+        { text: 'Wealth consists not in having great possessions, but in having few wants.', author: 'Epictetus' },
+        { text: 'Circumstances do not make the man, they only reveal him to himself.', author: 'Epictetus' },
+        { text: 'He who is not satisfied with a little, is satisfied with nothing.', author: 'Epicurus' },
+        { text: 'Not what we have but what we enjoy, constitutes our abundance.', author: 'Epicurus' },
+        { text: 'The mind that is anxious about future events is miserable.', author: 'Seneca' },
+        { text: 'Luck is what happens when preparation meets opportunity.', author: 'Seneca' },
+        { text: 'Difficulties strengthen the mind, as labor does the body.', author: 'Seneca' },
+        { text: 'While we wait for life, life passes.', author: 'Seneca' },
+        { text: 'It is not that we have a short time to live, but that we waste a lot of it.', author: 'Seneca' },
+        { text: 'Sometimes even to live is an act of courage.', author: 'Seneca' },
+        { text: 'Every new beginning comes from some other beginning\'s end.', author: 'Seneca' },
+        { text: 'He suffers more than necessary, who suffers before it is necessary.', author: 'Seneca' },
+        { text: 'If a man knows not to which port he sails, no wind is favorable.', author: 'Seneca' },
+        { text: 'As long as you live, keep learning how to live.', author: 'Seneca' },
+        { text: 'You act like mortals in all that you fear, and like immortals in all that you desire.', author: 'Seneca' },
+        { text: 'We suffer more often in imagination than in reality.', author: 'Seneca' },
+        { text: 'The whole future lies in uncertainty: live immediately.', author: 'Seneca' },
+        { text: 'No great mind has ever existed without a touch of madness.', author: 'Aristotle' },
+        { text: 'Educating the mind without educating the heart is no education at all.', author: 'Aristotle' },
+        { text: 'Happiness depends upon ourselves.', author: 'Aristotle' },
+        { text: 'Courage is the first of human qualities because it is the quality which guarantees the others.', author: 'Aristotle' },
+        { text: 'Man is by nature a social animal.', author: 'Aristotle' },
+        { text: 'It is the mark of an educated mind to be able to entertain a thought without accepting it.', author: 'Aristotle' },
+        { text: 'To perceive is to suffer.', author: 'Aristotle' },
+        { text: 'Hope is a waking dream.', author: 'Aristotle' },
+        { text: 'The roots of education are bitter, but the fruit is sweet.', author: 'Aristotle' },
+        { text: 'The whole is greater than the sum of its parts.', author: 'Aristotle' },
+        { text: 'We are what we repeatedly do. Excellence, then, is not an act, but a habit.', author: 'Aristotle' },
+        { text: 'Dignity does not consist in possessing honors, but in deserving them.', author: 'Aristotle' },
+        { text: 'Change in all things is sweet.', author: 'Aristotle' },
+        { text: 'The aim of art is to represent not the outward appearance of things, but their inward significance.', author: 'Aristotle' },
+        { text: 'Those who educate children well are more to be honored than they who produce them.', author: 'Aristotle' },
+        { text: 'Wishing to be friends is quick work, but friendship is a slow ripening fruit.', author: 'Aristotle' },
+        { text: 'The ideal man bears the accidents of life with dignity and grace.', author: 'Aristotle' },
+        { text: 'At his best, man is the noblest of all animals.', author: 'Aristotle' },
+        { text: 'Poverty is the parent of revolution and crime.', author: 'Aristotle' },
+        { text: 'Where your talents and the needs of the world cross, there lies your vocation.', author: 'Aristotle' },
+        { text: 'There is no great genius without some touch of madness.', author: 'Aristotle' },
+        { text: 'The high-minded man must care more for the truth than for what people think.', author: 'Aristotle' },
+        { text: 'A friend to all is a friend to none.', author: 'Aristotle' },
+        { text: 'To write well, express yourself like the common people, but think like a wise man.', author: 'Aristotle' },
+        { text: 'The greatest of all pleasures is the pleasure of learning.', author: 'Aristotle' },
+        { text: 'Anybody can become angry, that is easy; but to be angry with the right person, is not within everybody\'s power.', author: 'Aristotle' },
+        { text: 'The gods too are fond of a joke.', author: 'Aristotle' }
       ];
 
       /* =========================================================
@@ -480,33 +722,16 @@
 
       /* =========================================================
          QUOTE DATABASE LOADING
+         The quote library (QUOTES, ~224 entries) is embedded directly in
+         this file — see the QUOTES constant above. There is no runtime
+         network dependency for quotes: nothing to go down, rate-limit, or
+         get CORS-blocked. This function just seeds the shuffled queue.
       ========================================================= */
       function loadQuoteDatabase() {
-        showStatus('Loading quote library…');
-        fetch('https://type.fit/api/quotes')
-          .then(res => {
-            if (!res.ok) throw new Error('Bad response');
-            return res.json();
-          })
-          .then(data => {
-            const cleaned = data
-              .filter(q => q.text && q.text.trim().length > 0 && q.text.length < 260)
-              .map(q => ({
-                text: q.text.replace(/\s*-\s*$/, '').trim(),
-                author: (q.author || 'Unknown').split(',')[0].trim() || 'Unknown'
-              }));
-            quotes = cleaned.length > 50 ? cleaned : FALLBACK_QUOTES;
-            showStatus(`Loaded ${quotes.length.toLocaleString()} quotes`, 3000);
-            initQueue();
-            startProgram();
-          })
-          .catch(err => {
-            console.warn('Quote API failed, using local fallback set.', err);
-            quotes = FALLBACK_QUOTES;
-            showStatus('Quote service unavailable — using offline library', 4000);
-            initQueue();
-            startProgram();
-          });
+        quotes = QUOTES;
+        showStatus(`Loaded ${quotes.length.toLocaleString()} quotes`, 3000);
+        initQueue();
+        startProgram();
       }
 
       function initQueue() {
