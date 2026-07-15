@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Ambient Inspiration Display</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,500;0,700;0,900;1,300;1,500;1,700&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=Cinzel:wght@400;600;700;900&family=Caveat:wght@400;500;600;700&family=Montserrat:ital,wght@0,300;0,600;0,800;1,300;1,600&family=Raleway:ital,wght@0,300;0,600;0,800;1,300;1,600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --accent: #F4C95D;
+      --accent-soft: rgba(244, 201, 93, 0.35);
+      --glass-bg: rgba(15, 17, 22, 0.38);
+      --glass-border: rgba(255, 255, 255, 0.14);
+      --text-primary: #F7F6F3;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #05060a;
+      font-family: 'Poppins', sans-serif;
+      color: var(--text-primary);
+    }
+
+    /* ---------- BACKGROUND LAYERS ---------- */
+    .bg-layer {
+      position: fixed;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      transform: scale(1);
+      transition: opacity 1.6s ease-in-out;
+      z-index: 0;
+    }
+
+    .bg-layer.active {
+      opacity: 1;
+      animation: kenburns 22s ease-in-out infinite alternate;
+    }
+
+    @keyframes kenburns {
+      0% {
+        transform: scale(1) translate(0, 0);
+      }
+
+      100% {
+        transform: scale(1.14) translate(-1.5%, -1.5%);
+      }
+    }
+
+    .bg-scrim {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.18) 30%, rgba(0, 0, 0, 0.28) 65%, rgba(0, 0, 0, 0.62) 100%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .bg-fallback {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 30% 20%, #22283a 0%, #0a0c12 70%);
+      z-index: -1;
+    }
+
+    /* ---------- GLASS PANEL BASE ---------- */
+    .glass {
+      background: var(--glass-bg);
+      backdrop-filter: blur(18px) saturate(140%);
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+    }
+
+    /* ---------- TOP LEFT: TITLE ---------- */
+    .title-panel {
+      position: fixed;
+      top: 32px;
+      left: 32px;
+      padding: 14px 22px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .title-panel .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px 2px var(--accent-soft);
+      transition: background 0.8s ease, box-shadow 0.8s ease;
+    }
+
+    .title-panel span {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      opacity: 0.85;
+    }
+
+    /* ---------- TOP RIGHT: CLOCK ---------- */
+    .clock-panel {
+      position: fixed;
+      top: 32px;
+      right: 32px;
+      padding: 14px 26px;
+      z-index: 10;
+      text-align: right;
+    }
+
+    .clock-time {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .clock-date {
+      font-size: 12.5px;
+      font-weight: 400;
+      opacity: 0.75;
+      margin-top: 2px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ---------- CENTER: QUOTE STAGE ---------- */
+    .quote-stage {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 150px 9vw 170px;
+      pointer-events: none;
+    }
+
+    .quote-wrap {
+      max-width: min(1150px, 84vw);
+      max-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .quote-mark {
+      font-family: 'Playfair Display', serif;
+      font-size: 54px;
+      line-height: 1;
+      opacity: 0.55;
+      margin-bottom: 6px;
+      transition: color 0.8s ease;
+    }
+
+    .quote-text {
+      text-shadow: 0 2px 24px rgba(0, 0, 0, 0.55);
+      transition: opacity 0.5s ease;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+    }
+
+    .quote-text.fade {
+      opacity: 0;
+    }
+
+    .quote-author {
+      margin-top: 26px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 20px;
+      border-radius: 999px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: opacity 0.5s ease, color 0.8s ease, border-color 0.8s ease;
+    }
+
+    .quote-author::before {
+      content: "—";
+      opacity: 0.7;
+    }
+
+    /* ---------- BOTTOM CENTER: TIMER + SKIP ---------- */
+    .control-panel {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 14px 20px 14px 24px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      width: min(560px, 78vw);
+    }
+
+    .timer-block {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+
+    .timer-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      opacity: 0.65;
+      font-weight: 600;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 5px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.14);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 100%;
+      border-radius: 4px;
+      transition: background 0.8s ease;
+    }
+
+    .skip-btn {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      border: 1px solid var(--glass-border);
+      background: rgba(255, 255, 255, 0.06);
+      cursor: pointer;
+      transition: background 0.25s ease, transform 0.2s ease, border-color 0.8s ease;
+    }
+
+    .skip-btn:hover {
+      background: rgba(255, 255, 255, 0.16);
+      transform: scale(1.06);
+    }
+
+    .skip-btn:active {
+      transform: scale(0.94);
+    }
+
+    .skip-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* ---------- STATUS / FALLBACK MESSAGE ---------- */
+    .status-msg {
+      position: fixed;
+      bottom: 96px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 8px 18px;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+      border-radius: 999px;
+      z-index: 10;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.6s ease;
+    }
+
+    .status-msg.show {
+      opacity: 0.9;
+    }
+
+    @media (max-width:900px) {
+      .quote-stage {
+        padding: 120px 6vw 150px;
+      }
+
+      .clock-time {
+        font-size: 22px;
+      }
+
+      .title-panel span {
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="bg-fallback"></div>
+  <div id="bgA" class="bg-layer"></div>
+  <div id="bgB" class="bg-layer"></div>
+  <div class="bg-scrim"></div>
+
+  <div class="title-panel glass">
+    <div class="dot" id="titleDot"></div>
+    <span>Daily Inspiration</span>
+  </div>
+
+  <div class="clock-panel glass">
+    <div class="clock-time" id="clockTime">--:--:--</div>
+    <div class="clock-date" id="clockDate">Loading date…</div>
+  </div>
+
+  <div class="quote-stage">
+    <div class="quote-wrap">
+      <div class="quote-mark" id="quoteMark">"</div>
+      <div class="quote-text" id="quoteText">Loading inspiration…</div>
+      <div class="quote-author glass" id="quoteAuthor">Please wait</div>
+    </div>
+  </div>
+
+  <div class="status-msg glass" id="statusMsg"></div>
+
+  <div class="control-panel glass">
+    <div class="timer-block">
+      <div class="timer-labels">
+        <span>Next quote</span>
+        <span id="timerCount">60s</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+    <button class="skip-btn" id="skipBtn" title="Skip to next quote" aria-label="Skip to next quote">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <polygon points="5 4 15 12 5 20 5 4"></polygon>
+        <line x1="19" y1="5" x2="19" y2="19"></line>
+      </svg>
+    </button>
+  </div>
+
+  <script>
+    (function () {
+
+      /* =========================================================
+         CONFIG
+      ========================================================= */
+      const CYCLE_SECONDS = 60;
+      const PRELOAD_AT_SECONDS_REMAINING = 30; // start preloading next bg when 30s remain (i.e. 30s in)
+
+      const FONTS = [
+        { family: "'Poppins', sans-serif", weights: [300, 500, 700, 900] },
+        { family: "'Playfair Display', serif", weights: [400, 700, 900] },
+        { family: "'Cinzel', serif", weights: [400, 600, 700, 900] },
+        { family: "'Caveat', cursive", weights: [400, 500, 600, 700] },
+        { family: "'Montserrat', sans-serif", weights: [300, 600, 800] },
+        { family: "'Raleway', sans-serif", weights: [300, 600, 800] }
+      ];
+
+      const ACCENTS = [
+        "#F4C95D", "#FF6B4A", "#5EEAD4", "#FF6FA5",
+        "#A78BFA", "#7DD3FC", "#6EE7B7", "#FB923C",
+        "#C4B5FD", "#FBBF24", "#F472B6", "#38BDF8"
+      ];
+
+      // Curated cinematic landscape imagery (Unsplash direct HD URLs)
+      const BACKGROUND_IDS = [
+        "1506905925346-21bda4d32df4", "1441974231531-c6227db76b6e",
+        "1470071459604-3b5ec3a7fe05", "1500534623283-312aade485b7",
+        "1519681393784-d120267933ba", "1500530855697-b586d89ba3ee",
+        "1490730141103-6cac27aaab94", "1447752875215-b2761acb3c5d",
+        "1441260038675-7329ab4cc264", "1419242902214-272b3f66ee7a",
+        "1472214103451-9374bd1c798e", "1433086966358-54859d0ed716",
+        "1426604966848-d7adac402bff", "1476611317561-60117649dd94",
+        "1501594907352-04cda38ebc29", "1469474968028-56623f02e42e",
+        "1493246507139-91e8fad9978e", "1518837695005-2083093ee35b",
+        "1464822759023-fed622ff2c3b", "1502082553048-f009c37129b9"
+      ];
+      const BACKGROUND_URLS = BACKGROUND_IDS.map(id =>
+        `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1920&q=80`
+      );
+
+      // Small local fallback quote set (used only if the remote quote database fails to load)
+      const FALLBACK_QUOTES = [
+        { text: "The way to get started is to quit talking and begin doing.", author: "Walt Disney" },
+        { text: "Life is what happens when you're busy making other plans.", author: "John Lennon" },
+        { text: "The future belongs to those who believe in the beauty of their dreams.", author: "Eleanor Roosevelt" },
+        { text: "It is during our darkest moments that we must focus to see the light.", author: "Aristotle" },
+        { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+        { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+        { text: "In the middle of difficulty lies opportunity.", author: "Albert Einstein" },
+        { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+        { text: "What lies behind us and what lies before us are tiny matters compared to what lies within us.", author: "Ralph Waldo Emerson" },
+        { text: "Do not go where the path may lead, go instead where there is no path and leave a trail.", author: "Ralph Waldo Emerson" },
+        { text: "The only limit to our realization of tomorrow is our doubts of today.", author: "Franklin D. Roosevelt" },
+        { text: "You miss 100% of the shots you don't take.", author: "Wayne Gretzky" },
+        { text: "Whether you think you can or you think you can't, you're right.", author: "Henry Ford" },
+        { text: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Chinese Proverb" },
+        { text: "Your time is limited, so don't waste it living someone else's life.", author: "Steve Jobs" },
+        { text: "Everything you've ever wanted is on the other side of fear.", author: "George Addair" },
+        { text: "Hardships often prepare ordinary people for an extraordinary destiny.", author: "C.S. Lewis" },
+        { text: "It always seems impossible until it's done.", author: "Nelson Mandela" },
+        { text: "Act as if what you do makes a difference. It does.", author: "William James" },
+        { text: "Certain things catch your eye, but pursue only those that capture the heart.", author: "Ancient Indian Proverb" }
+      ];
+
+      /* =========================================================
+         STATE
+      ========================================================= */
+      let quotes = [];
+      let shuffledQueue = [];
+      let queuePointer = 0;
+
+      let bgLayers = [document.getElementById('bgA'), document.getElementById('bgB')];
+      let activeLayerIndex = 0;      // which of bgLayers is currently visible
+      let bgIndex = 0;               // pointer into BACKGROUND_URLS
+      let preloadedImage = null;     // Image object preloaded for next transition
+      let preloadTriggered = false;
+
+      let remaining = CYCLE_SECONDS;
+      let tickHandle = null;
+
+      const els = {
+        quoteText: document.getElementById('quoteText'),
+        quoteAuthor: document.getElementById('quoteAuthor'),
+        quoteMark: document.getElementById('quoteMark'),
+        progressFill: document.getElementById('progressFill'),
+        timerCount: document.getElementById('timerCount'),
+        clockTime: document.getElementById('clockTime'),
+        clockDate: document.getElementById('clockDate'),
+        skipBtn: document.getElementById('skipBtn'),
+        statusMsg: document.getElementById('statusMsg'),
+        titleDot: document.getElementById('titleDot')
+      };
+
+      /* =========================================================
+         UTILITIES
+      ========================================================= */
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function pick(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+      }
+
+      function showStatus(msg, duration) {
+        els.statusMsg.textContent = msg;
+        els.statusMsg.classList.add('show');
+        if (duration) {
+          setTimeout(() => els.statusMsg.classList.remove('show'), duration);
+        }
+      }
+
+      /* =========================================================
+         QUOTE DATABASE LOADING
+      ========================================================= */
+      function loadQuoteDatabase() {
+        showStatus('Loading quote library…');
+        fetch('https://type.fit/api/quotes')
+          .then(res => {
+            if (!res.ok) throw new Error('Bad response');
+            return res.json();
+          })
+          .then(data => {
+            const cleaned = data
+              .filter(q => q.text && q.text.trim().length > 0 && q.text.length < 260)
+              .map(q => ({
+                text: q.text.replace(/\s*-\s*$/, '').trim(),
+                author: (q.author || 'Unknown').split(',')[0].trim() || 'Unknown'
+              }));
+            quotes = cleaned.length > 50 ? cleaned : FALLBACK_QUOTES;
+            showStatus(`Loaded ${quotes.length.toLocaleString()} quotes`, 3000);
+            initQueue();
+            startProgram();
+          })
+          .catch(err => {
+            console.warn('Quote API failed, using local fallback set.', err);
+            quotes = FALLBACK_QUOTES;
+            showStatus('Quote service unavailable — using offline library', 4000);
+            initQueue();
+            startProgram();
+          });
+      }
+
+      function initQueue() {
+        shuffledQueue = shuffle(quotes);
+        queuePointer = 0;
+      }
+
+      function nextQuoteFromQueue() {
+        if (queuePointer >= shuffledQueue.length) {
+          // reshuffle, but avoid repeating the very last quote immediately
+          const last = shuffledQueue[shuffledQueue.length - 1];
+          let reshuffled = shuffle(quotes);
+          if (reshuffled[0] === last && reshuffled.length > 1) {
+            [reshuffled[0], reshuffled[1]] = [reshuffled[1], reshuffled[0]];
+          }
+          shuffledQueue = reshuffled;
+          queuePointer = 0;
+        }
+        const q = shuffledQueue[queuePointer];
+        queuePointer++;
+        return q;
+      }
+
+      /* =========================================================
+         BACKGROUND IMAGE HANDLING
+      ========================================================= */
+      function urlForIndex(i) {
+        return BACKGROUND_URLS[i % BACKGROUND_URLS.length];
+      }
+
+      function preloadImage(url) {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = () => resolve(null); // fail gracefully
+          img.src = url;
+        });
+      }
+
+      function applyBackground(url) {
+        const nextLayerIndex = 1 - activeLayerIndex;
+        const nextLayer = bgLayers[nextLayerIndex];
+        const currentLayer = bgLayers[activeLayerIndex];
+
+        nextLayer.style.backgroundImage = url ? `url("${url}")` : 'none';
+
+        // restart ken-burns animation cleanly
+        nextLayer.classList.remove('active');
+        void nextLayer.offsetWidth; // force reflow
+        nextLayer.classList.add('active');
+
+        currentLayer.classList.remove('active');
+
+        activeLayerIndex = nextLayerIndex;
+      }
+
+      function initFirstBackground() {
+        bgIndex = Math.floor(Math.random() * BACKGROUND_URLS.length);
+        preloadImage(urlForIndex(bgIndex)).then(() => {
+          applyBackground(urlForIndex(bgIndex));
+        });
+      }
+
+      function preloadNextBackgroundIfNeeded() {
+        if (preloadTriggered) return;
+        preloadTriggered = true;
+        const nextIdx = (bgIndex + 1) % BACKGROUND_URLS.length;
+        preloadImage(urlForIndex(nextIdx)).then(img => {
+          preloadedImage = img ? nextIdx : null;
+        });
+      }
+
+      function advanceBackground() {
+        const nextIdx = (bgIndex + 1) % BACKGROUND_URLS.length;
+        bgIndex = nextIdx;
+        applyBackground(urlForIndex(bgIndex));
+        preloadTriggered = false;
+        preloadedImage = null;
+      }
+
+      /* =========================================================
+         TYPOGRAPHY / STYLE RANDOMIZATION
+      ========================================================= */
+      function computeFontSize(text) {
+        const len = text.length;
+        // longer quotes get smaller font; clamps keep it inside quote-wrap bounds
+        let size;
+        if (len < 60) size = 58;
+        else if (len < 110) size = 48;
+        else if (len < 170) size = 40;
+        else if (len < 230) size = 33;
+        else size = 27;
+        return size;
+      }
+
+      function applyRandomStyle(quoteObj) {
+        const font = pick(FONTS);
+        const weight = pick(font.weights);
+        const italic = Math.random() < 0.35;
+        const accent = pick(ACCENTS);
+        const fontSize = computeFontSize(quoteObj.text);
+
+        els.quoteText.style.fontFamily = font.family;
+        els.quoteText.style.fontWeight = weight;
+        els.quoteText.style.fontStyle = italic ? 'italic' : 'normal';
+        els.quoteText.style.fontSize = fontSize + 'px';
+        els.quoteText.style.lineHeight = 1.35;
+
+        els.quoteMark.style.color = accent;
+        els.quoteAuthor.style.color = accent;
+        els.quoteAuthor.style.borderColor = accent;
+        els.quoteAuthor.style.background = accent + '1A'; // subtle tint
+        els.progressFill.style.background = accent;
+        els.titleDot.style.background = accent;
+        els.titleDot.style.boxShadow = `0 0 10px 2px ${accent}66`;
+
+        document.documentElement.style.setProperty('--accent', accent);
+      }
+
+      /* =========================================================
+         QUOTE RENDER / CYCLE
+      ========================================================= */
+      function renderQuote(quoteObj) {
+        els.quoteText.classList.add('fade');
+        setTimeout(() => {
+          els.quoteText.textContent = quoteObj.text;
+          els.quoteAuthor.textContent = quoteObj.author || 'Unknown';
+          applyRandomStyle(quoteObj);
+          els.quoteText.classList.remove('fade');
+        }, 260);
+      }
+
+      function goToNextQuote(fromSkip) {
+        const q = nextQuoteFromQueue();
+        renderQuote(q);
+        if (preloadedImage !== null) {
+          bgIndex = preloadedImage;
+          applyBackground(urlForIndex(bgIndex));
+          preloadedImage = null;
+          preloadTriggered = false;
+        } else {
+          advanceBackground();
+        }
+        resetTimer();
+      }
+
+      /* =========================================================
+         TIMER / PROGRESS BAR
+      ========================================================= */
+      function resetTimer() {
+        remaining = CYCLE_SECONDS;
+        preloadTriggered = false;
+        updateTimerUI();
+      }
+
+      function updateTimerUI() {
+        els.timerCount.textContent = remaining + 's';
+        const pct = (remaining / CYCLE_SECONDS) * 100;
+        els.progressFill.style.width = pct + '%';
+      }
+
+      function tick() {
+        remaining -= 1;
+        if (remaining <= PRELOAD_AT_SECONDS_REMAINING) {
+          preloadNextBackgroundIfNeeded();
+        }
+        if (remaining <= 0) {
+          goToNextQuote(false);
+          return;
+        }
+        updateTimerUI();
+      }
+
+      function startTicker() {
+        if (tickHandle) clearInterval(tickHandle);
+        els.progressFill.style.transition = 'width 1s linear, background 0.8s ease';
+        tickHandle = setInterval(tick, 1000);
+      }
+
+      /* =========================================================
+         CLOCK
+      ========================================================= */
+      function updateClock() {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2, '0');
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const s = String(now.getSeconds()).padStart(2, '0');
+        els.clockTime.textContent = `${h}:${m}:${s}`;
+
+        const dateStr = now.toLocaleDateString(undefined, {
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+        els.clockDate.textContent = dateStr;
+      }
+
+      /* =========================================================
+         INIT / PROGRAM START
+      ========================================================= */
+      function startProgram() {
+        initFirstBackground();
+        goToNextQuote(false);   // shows first quote immediately, also resets timer
+        startTicker();
+      }
+
+      function init() {
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        els.skipBtn.addEventListener('click', () => {
+          goToNextQuote(true);
+        });
+
+        loadQuoteDatabase();
+      }
+
+      document.addEventListener('DOMContentLoaded', init);
+    })();
+  </script>
+</body>
+
+</html>
